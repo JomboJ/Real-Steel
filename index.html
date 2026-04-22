@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Humanoid Robot Arena</title>
+ <style>
+   * { box-sizing: border-box; margin: 0; padding: 0; }
+   body {
+     font-family: Arial, sans-serif;
+     background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+     color: #e5eefc;
+     line-height: 1.6;
+     overflow-x: hidden;
+   }
+   a { color: inherit; text-decoration: none; }
+   header {
+     min-height: 100vh;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     padding: 40px 20px;
+     position: relative;
+     overflow: hidden;
+     background:
+       radial-gradient(circle at top, rgba(0,212,255,0.18), transparent 30%),
+       radial-gradient(circle at bottom, rgba(255,0,128,0.12), transparent 35%),
+       linear-gradient(180deg, #08111f, #020617 70%);
+   }
+   header::before {
+     content: "";
+     position: absolute;
+     inset: 0;
+     background: repeating-linear-gradient(
+       90deg,
+       rgba(255,255,255,0.03) 0px,
+       rgba(255,255,255,0.03) 2px,
+       transparent 2px,
+       transparent 80px
+     );
+     pointer-events: none;
+   }
+   .hero {
+     max-width: 1180px;
+     width: 100%;
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 34px;
+     align-items: center;
+     position: relative;
+     z-index: 1;
+   }
+   h1 {
+     font-size: 72px;
+     line-height: 0.95;
+     margin-bottom: 16px;
+     color: #ffffff;
+     text-shadow: 0 0 18px rgba(0,212,255,0.35);
+   }
+   .lead {
+     font-size: 20px;
+     max-width: 560px;
+     color: #cdd8ef;
+   }
+   .buttons {
+     display: flex;
+     gap: 12px;
+     flex-wrap: wrap;
+     margin-top: 24px;
+   }
+   button, .btn {
+     border: none;
+     padding: 12px 18px;
+     border-radius: 14px;
+     font-size: 15px;
+     cursor: pointer;
+     transition: .25s ease;
+     font-weight: bold;
+   }
+   button:hover, .btn:hover {
+     transform: translateY(-2px);
+   }
+   .primary {
+     background: linear-gradient(135deg, #06b6d4, #2563eb);
+     color: white;
+     box-shadow: 0 10px 25px rgba(37,99,235,0.35);
+   }
+   .secondary {
+     background: rgba(255,255,255,0.08);
+     color: #fff;
+     border: 1px solid rgba(255,255,255,0.12);
+   }
+   .hero-stage {
+     min-height: 520px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+   }
+   .big-robot {
+     position: relative;
+     width: 240px;
+     height: 500px;
+     filter: drop-shadow(0 0 24px rgba(0,212,255,0.38));
+     animation: floatRobot 3s ease-in-out infinite;
+   }
+   @keyframes floatRobot {
+     0%,100% { transform: translateY(0); }
+     50% { transform: translateY(-10px); }
+   }
+   .big-head {
+     position: absolute;
+     left: 72px;
+     top: 0;
+     width: 96px;
+     height: 78px;
+     background: linear-gradient(135deg, #f5c65a, #a56a11);
+     border: 4px solid #111827;
+     border-radius: 10px;
+   }
+   .big-face {
+     position: absolute;
+     inset: 10px;
+     background: #111827;
+     border-radius: 8px;
+   }
+   .big-eye {
+     position: absolute;
+     top: 20px;
+     width: 14px;
+     height: 14px;
+     background: #fde047;
+     border-radius: 50%;
+     box-shadow: 0 0 10px #fde047;
+   }
+   .big-eye.left { left: 18px; }
+   .big-eye.right { right: 18px; }
+   .big-body {
+     position: absolute;
+     left: 58px;
+     top: 84px;
+     width: 124px;
+     height: 158px;
+     background: linear-gradient(135deg, #f5c65a, #a56a11);
+     border: 5px solid #111827;
+     border-radius: 12px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     color: #111827;
+     font-weight: 900;
+     letter-spacing: 2px;
+   }
+   .big-arm, .big-leg {
+     position: absolute;
+     background: #111827;
+     border-radius: 14px;
+     transform-origin: top center;
+   }
+   .big-arm { top: 100px; width: 28px; height: 124px; }
+   .big-arm.left { left: 18px; transform: rotate(18deg); }
+   .big-arm.right { right: 18px; transform: rotate(-18deg); transition: transform .4s ease; }
+   .big-forearm {
+     position: absolute;
+     left: 2px;
+     bottom: -84px;
+     width: 24px;
+     height: 100px;
+     background: #111827;
+     border-radius: 14px;
+   }
+   .big-arm.left .big-forearm { transform: rotate(18deg); }
+   .big-arm.right .big-forearm { transform: rotate(-18deg); }
+   .big-leg { top: 242px; width: 34px; height: 152px; }
+   .big-leg.left { left: 78px; }
+   .big-leg.right { right: 78px; }
+   .big-calf {
+     position: absolute;
+     left: 2px;
+     bottom: -90px;
+     width: 30px;
+     height: 120px;
+     background: linear-gradient(135deg, #f5c65a, #a56a11);
+     border: 4px solid #111827;
+     border-radius: 12px;
+   }
+   .big-foot {
+     position: absolute;
+     left: -14px;
+     bottom: -108px;
+     width: 62px;
+     height: 16px;
+     background: #111827;
+     border-radius: 10px;
+   }
+   .big-robot.wave .big-arm.right { transform: rotate(-72deg); }
+   section {
+     max-width: 1180px;
+     margin: auto;
+     padding: 72px 20px;
+   }
+   h2 {
+     font-size: 40px;
+     margin-bottom: 22px;
+     color: #fff;
+   }
+   .grid-2, .grid-4 {
+     display: grid;
+     gap: 18px;
+   }
+   .grid-2 { grid-template-columns: 1fr 1fr; }
+   .grid-4 { grid-template-columns: repeat(4, 1fr); }
+   .card {
+     background: rgba(255,255,255,0.06);
+     border: 1px solid rgba(255,255,255,0.08);
+     border-radius: 22px;
+     padding: 22px;
+     box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+     backdrop-filter: blur(6px);
+   }
+   .card p { color: #cbd5e1; }
+   .member-photo {
+     width: 100%;
+     height: 170px;
+     border-radius: 18px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     background: linear-gradient(135deg, #0ea5e9, #1e293b);
+     font-size: 52px;
+     font-weight: 900;
+     margin-bottom: 12px;
+     color: white;
+   }
+   .component {
+     text-align: center;
+   }
+   .icon {
+     font-size: 40px;
+     margin-bottom: 10px;
+   }
+   .demo-panel {
+     position: relative;
+     background: linear-gradient(180deg, #111827, #020617);
+     border-radius: 28px;
+     padding: 28px;
+     border: 1px solid rgba(255,255,255,0.08);
+     box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+     overflow: hidden;
+   }
+   .fight-intro {
+     position: absolute;
+     inset: 0;
+     z-index: 10;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     flex-direction: column;
+     background: rgba(0,0,0,0.82);
+     transition: .45s ease;
+   }
+   .fight-sub {
+     font-size: 26px;
+     letter-spacing: 3px;
+     color: #7dd3fc;
+     margin-bottom: 10px;
+   }
+   .fight-text {
+     font-size: 58px;
+     font-weight: 900;
+     color: white;
+     text-shadow: 0 0 14px #22d3ee, 0 0 28px #22d3ee;
+     animation: pulseText 1s infinite;
+   }
+   @keyframes pulseText {
+     0%,100% { transform: scale(1); opacity: 1; }
+     50% { transform: scale(1.08); opacity: .85; }
+   }
+   .arena {
+     position: relative;
+     height: 360px;
+     border-radius: 26px;
+     overflow: hidden;
+     background:
+       radial-gradient(circle at center, rgba(34,211,238,0.08), transparent 35%),
+       radial-gradient(circle at bottom, rgba(255,120,0,0.12), transparent 30%),
+       radial-gradient(circle at center, rgba(255,80,0,0.08), transparent 24%),
+       linear-gradient(180deg, #1e293b, #3d52ae 75%);
+     border: 2px solid rgba(34,211,238,0.18);
+     box-shadow: inset 0 0 40px rgba(34,211,238,0.08);
+   }
+   .lights {
+     mix-blend-mode: screen;
+     position: absolute;
+     inset: 0;
+     background:
+       repeating-linear-gradient(90deg, rgba(34,211,238,0.08) 0 34px, transparent 34px 72px),
+       radial-gradient(circle at top, rgba(236,72,153,0.16), transparent 32%),
+       radial-gradient(circle at bottom, rgba(34,211,238,0.14), transparent 36%);
+     animation: stageBlink 1.2s infinite;
+     pointer-events: none;
+   }
+   @keyframes stageBlink {
+     0%,100% { opacity: .7; filter: brightness(1); }
+     50% { opacity: 1; filter: brightness(1.3); }
+   }
+   .arena-floor {
+     position: absolute;
+     left: 0; right: 0; bottom: 36px;
+     height: 6px;
+     background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+     box-shadow: 0 0 12px rgba(56,189,248,0.45);
+   }
+   .mini-robot {
+     position: absolute;
+     bottom: 42px;
+     width: 180px;
+     height: 240px;
+     transition: left .12s linear, right .12s linear, transform .12s linear;
+   }
+   #playerRobot { left: 60px; }
+   .speech {
+     position: absolute;
+     right: -70px;
+     top: -6px;
+     background: white;
+     color: #1f2937;
+     padding: 10px 14px;
+     border-radius: 18px;
+     font-weight: bold;
+     box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+     white-space: nowrap;
+     opacity: 0;
+     transform: translateY(10px);
+     transition: .3s ease;
+     z-index: 2;
+   }
+   .speech-tail {
+     position: absolute;
+     right: -8px;
+     top: 34px;
+     width: 16px;
+     height: 16px;
+     background: white;
+     transform: rotate(45deg);
+     opacity: 0;
+     transition: .3s ease;
+     z-index: 1;
+   }
+   .head {
+     box-shadow: inset 0 0 10px rgba(255,255,255,0.12), inset 0 -8px 14px rgba(0,0,0,0.24), 0 0 10px rgba(255,255,255,0.05);
+     position: absolute;
+     left: 58px;
+     top: 0;
+     width: 64px;
+     height: 54px;
+     border-radius: 8px;
+     border: 3px solid #111827;
+     transform-origin: bottom center;
+     transition: transform .28s ease;
+   }
+   .head.gold, .body.gold { background: linear-gradient(135deg, #f2c24d, #c28b1d); }
+   .head.silver, .body.silver { background: linear-gradient(135deg, #9ca3af, #4b5563); }
+   .face {
+     position: absolute;
+     inset: 7px;
+     background: #111827;
+     border-radius: 5px;
+   }
+   .eye {
+     position: absolute;
+     top: 15px;
+     width: 9px;
+     height: 9px;
+     border-radius: 50%;
+     transition: .14s ease;
+   }
+   .eye.left { left: 13px; }
+   .eye.right { right: 13px; }
+   .eye.yellow { background: #fde047; box-shadow: 0 0 8px #fde047; }
+   .eye.cyan { background: #67e8f9; box-shadow: 0 0 8px #67e8f9; }
+   .body {
+     box-shadow: inset 0 0 12px rgba(255,255,255,0.12), inset 0 -8px 16px rgba(0,0,0,0.28), 0 0 12px rgba(255,255,255,0.05);
+     position: absolute;
+     left: 48px;
+     top: 56px;
+     width: 84px;
+     height: 96px;
+     border-radius: 10px;
+     border: 4px solid #111827;
+     transition: background .25s ease;
+   }
+   .arm, .leg {
+     position: absolute;
+     background: #111827;
+     border-radius: 10px;
+     transform-origin: top center;
+   }
+   .arm {
+     top: 66px;
+     width: 18px;
+     height: 82px;
+     transition: transform .2s ease;
+   }
+   .arm.left { left: 22px; transform: rotate(20deg); }
+   .arm.right { right: 22px; transform: rotate(-20deg); }
+   .leg {
+     top: 152px;
+     width: 20px;
+     height: 72px;
+     transition: transform .2s ease;
+   }
+   .leg.left { left: 61px; }
+   .leg.right { right: 61px; }
+   .foot {
+     position: absolute;
+     top: 220px;
+     width: 36px;
+     height: 12px;
+     background: #111827;
+     border-radius: 8px;
+   }
+   .foot.left { left: 53px; }
+   .foot.right { right: 53px; }
+   .controls {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 10px;
+     margin-top: 18px;
+   }
+   .status {
+     margin-top: 16px;
+     font-size: 18px;
+     min-height: 28px;
+     color: #cbd5e1;
+   }
+   @keyframes walkLeftArm {
+     0%,100% { transform: rotate(30deg); }
+     50% { transform: rotate(85deg); }
+   }
+   @keyframes walkRightArm {
+     0%,100% { transform: rotate(-30deg); }
+     50% { transform: rotate(-85deg); }
+   }
+   @keyframes walkLeftLeg {
+     0%,100% { transform: rotate(14deg); }
+     50% { transform: rotate(-18deg); }
+   }
+   @keyframes walkRightLeg {
+     0%,100% { transform: rotate(-14deg); }
+     50% { transform: rotate(18deg); }
+   }
+   @keyframes smokeUp {
+     0% { transform: translateY(0) scale(.9); opacity: 0; }
+     15% { opacity: .55; }
+     100% { transform: translateY(-220px) scale(1.5); opacity: 0; }
+   }
+   @keyframes firePulse {
+     0%,100% { opacity: .7; filter: blur(0px); }
+     50% { opacity: 1; filter: blur(2px); }
+   }
+   footer {
+     text-align: center;
+     color: #94a3b8;
+     padding: 24px 20px 46px;
+   }
+   @media (max-width: 960px) {
+     .hero, .grid-2, .grid-4, .arena-top {
+       grid-template-columns: 1fr;
+     }
+     h1 { font-size: 52px; }
+     .hero-stage { min-height: 420px; }
+     .arena { height: 420px; }
+     #playerRobot { left: 20px; }
+   }
+ </style>
+</head>
+<body>
+ <header>
+   <div class="hero">
+     <div>
+       <h1>Humanoid<br>Robot Arena</h1>
+       <p class="lead">Arduino, servo motor, 3D хэвлэлт дээр суурилсан хүн дүрстэй роботын төслийг Real Steel киноны уур амьсгалтай танилцуулах веб.</p>
+       <div class="buttons">
+         <button class="primary" onclick="greetBigRobot()"> Робот мэндчилгээ</button>
+         <a class="btn secondary" href="#demo">Arena Real Steel</a>
+       </div>
+     </div>
+     <div class="hero-stage">
+       <div class="big-robot" id="bigRobot">
+         <div id="bigSpeech" style="position:absolute;right:-130px;top:30px;background:white;color:#1f2937;padding:12px 16px;border-radius:18px;font-weight:bold;box-shadow:0 8px 20px rgba(0,0,0,0.18);white-space:nowrap;opacity:0;transform:translateY(10px);transition:.3s ease;z-index:3;">Сайн байна уу?</div>
+         <div id="bigSpeechTail" style="position:absolute;right:-14px;top:66px;width:18px;height:18px;background:white;transform:rotate(45deg);opacity:0;transition:.3s ease;z-index:2;"></div>
+         <div class="big-head">
+           <div class="big-face">
+             <div class="big-eye left"></div>
+             <div class="big-eye right"></div>
+           </div>
+         </div>
+         <div class="big-body">I am robot</div>
+         <div class="big-arm left"><div class="big-forearm"></div></div>
+         <div class="big-arm right"><div class="big-forearm"></div></div>
+         <div class="big-leg left"><div class="big-calf"></div><div class="big-foot"></div></div>
+         <div class="big-leg right"><div class="big-calf"></div><div class="big-foot"></div></div>
+       </div>
+     </div>
+   </div>
+ </header>
+ <section>
+   <h2>Төслийн тухай</h2>
+   <div class="grid-2">
+     <div class="card">
+       <h3>Зорилго</h3>
+       <p>Arduino-г тархи болгон ашиглаж, 19 серво моторын тусламжтай бодит хөдөлгөөнтэй, хүн дүрстэй робот бүтээх.</p>
+     </div>
+     <div class="card">
+       <h3>Онцлог</h3>
+       <p>Толгой, гар, их бие, хөл зэрэг бүх хэсгийн зохицуулалттай хөдөлгөөн, механик бүтэц, программчлалын уялдааг харуулсан төсөл.</p>
+     </div>
+   </div>
+ </section>
+ <section>
+   <h2>Багийн гишүүд</h2>
+   <div class="grid-4">
+     <div class="card"><div class="member-photo">Т</div><h3>Тэнгис</h3><p>Код боловсруулах, бичих</p></div>
+     <div class="card"><div class="member-photo">С</div><h3>Сэцэнбилгүүн</h3><p>Код боловсруулах, бичих</p></div>
+     <div class="card"><div class="member-photo">С</div><h3>Соёмбо</h3><p>Дизайн, угсаралт</p></div>
+     <div class="card"><div class="member-photo">И</div><h3>Итгэлт</h3><p>Дизайн, угсаралт</p></div>
+   </div>
+ </section>
+ <section>
+   <h2>Гол онцлогууд</h2>
+   <div class="grid-2">
+     <div class="card"><h3>19 Серво мотор</h3><p>Үе бүрт байрласан серво мотор нь жигд, нарийвчлалтай хөдөлгөөн хийх боломж олгоно.</p></div>
+     <div class="card"><h3>Бүтэн биеийн хөдөлгөөн</h3><p>Толгой, гар, их бие, хөл зэрэг бүх хэсгийн уялдаа холбоотой хөдөлгөөн.</p></div>
+     <div class="card"><h3>Хүн мэт хөдөлгөөн</h3><p>Алхалт, гараа даллах, дохио зангаа зэрэг хүнтэй төстэй хөдөлгөөнүүд.</p></div>
+     <div class="card"><h3>3D хэвлэлт + Arduino</h3><p>3D хүрээ, servo motor, Arduino хяналтын системийг нэгтгэсэн бүтээл.</p></div>
+   </div>
+ </section>
+ <section>
+   <h2>Technical Components</h2>
+   <div class="grid-4">
+     <div class="card component"><div class="icon"> зураг оруулах ⚙️</div><h3>Servo Motor</h3></div>
+     <div class="card component"><div class="icon">💻</div><h3>Arduino</h3></div>
+     <div class="card component"><div class="icon">🖨️</div><h3>3D Print</h3></div>
+     <div class="card component"><div class="icon">🔋</div><h3>Power</h3></div>
+   </div>
+ </section>
+ <section id="demo">
+   <div class="demo-panel">
+     <div class="fight-intro" id="fightIntro">
+       <div class="fight-sub">ARENA MODE</div>
+       <div class="fight-text" id="fightText">READY...</div>
+       <button class="primary" style="margin-top:18px;" onclick="startFightMode()">Start</button>
+     </div>
+     <h2>Тулааны талбар</h2>
+     <p style="color:#cbd5e1; margin-bottom:18px;">Жижиг роботын алхалт, мэндчилгээ, гар хөдөлгөх, толгой эргэх, өнгө солих тоглоом.</p>
+       <div class="arena" id="arena">
+         <div class="lights"></div>
+         <div id="smokeLayer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:.8;">
+           <span style="position:absolute;left:8%;bottom:20px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.12), transparent 65%);filter:blur(12px);animation:smokeUp 8s linear infinite;"></span>
+           <span style="position:absolute;left:24%;bottom:10px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle, rgba(255,180,120,0.14), transparent 65%);filter:blur(10px);animation:smokeUp 10s linear infinite 1s;"></span>
+           <span style="position:absolute;right:20%;bottom:16px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.1), transparent 65%);filter:blur(12px);animation:smokeUp 9s linear infinite 2s;"></span>
+           <span style="position:absolute;right:8%;bottom:12px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle, rgba(255,120,0,0.16), transparent 65%);filter:blur(12px);animation:smokeUp 7s linear infinite .5s;"></span>
+         </div>
+         <div id="fireGlow" style="position:absolute;left:0;right:0;bottom:0;height:70px;background:radial-gradient(circle at 20% 100%, rgba(255,120,0,0.22), transparent 30%),radial-gradient(circle at 50% 100%, rgba(255,80,0,0.18), transparent 28%),radial-gradient(circle at 80% 100%, rgba(255,140,0,0.22), transparent 30%);pointer-events:none;animation:firePulse 1.4s ease-in-out infinite;"></div>
+         <div class="arena-floor"></div>
+         <div class="mini-robot" id="playerRobot">
+           <div class="speech" id="speechBubble">Сайн байна уу?</div>
+           <div class="speech-tail" id="speechTail"></div>
+           <div class="head gold" id="playerHead">
+             <div class="face">
+               <span class="eye left yellow" id="eyeLeft"></span>
+               <span class="eye right yellow" id="eyeRight"></span>
+             </div>
+           </div>
+           <div class="body gold" id="playerBody"></div>
+           <div class="arm left" id="playerLeftArm"></div>
+           <div class="arm right" id="playerRightArm"></div>
+           <div class="leg left" id="playerLeftLeg"></div>
+           <div class="leg right" id="playerRightLeg"></div>
+           <div class="foot left"></div>
+           <div class="foot right"></div>
+         </div>
+       </div>
+     </div>
+     <div class="controls">
+       <button class="primary" onclick="greetRobot()">Мэндчилгээ</button>
+       <button class="secondary" onclick="moveLeftArm()">Зүүн гар</button>
+       <button class="secondary" onclick="moveRightArm()">Баруун гар</button>
+       <button class="secondary" onclick="stretchArms()">Суниах</button>
+       <button class="secondary" onclick="rotateHead()">Толгой хөдөлгөх</button>
+       <button class="secondary" onclick="changeColor()">Өнгө солих</button>
+       <button class="secondary" onclick="walkRobots()">Бүжиглэх</button>
+       <button class="secondary" onclick="resetGame()">Reset</button>
+     </div>
+     <div class="status" id="status">Тоглоом эхэллээ. Keyboard: A/D эсвэл ←/→ = move.</div>
+   </div>
+ </section>
+ <footer>
+   <p><strong>Humanoid Robot Arena</strong> </p>
+ </footer>
+
+
+ <script>
+   const bigRobot = document.getElementById('bigRobot');
+   const bigSpeech = document.getElementById('bigSpeech');
+   const bigSpeechTail = document.getElementById('bigSpeechTail');
+   const statusText = document.getElementById('status');
+   const playerRobot = document.getElementById('playerRobot');
+   const playerHead = document.getElementById('playerHead');
+   const playerBody = document.getElementById('playerBody');
+   const playerLeftArm = document.getElementById('playerLeftArm');
+   const playerRightArm = document.getElementById('playerRightArm');
+   const playerLeftLeg = document.getElementById('playerLeftLeg');
+   const playerRightLeg = document.getElementById('playerRightLeg');
+   const eyeLeft = document.getElementById('eyeLeft');
+   const eyeRight = document.getElementById('eyeRight');
+   const speechBubble = document.getElementById('speechBubble');
+   const speechTail = document.getElementById('speechTail');
+   const scoreText = document.getElementById('scoreText');
+   const comboText = document.getElementById('comboText');
+   const fightIntro = document.getElementById('fightIntro');
+   const fightText = document.getElementById('fightText');
+
+
+   let playerX = 60;
+   let started = false;
+   function greetBigRobot() {
+     bigRobot.classList.add('wave');
+     bigSpeech.style.opacity = '1';
+     bigSpeechTail.style.opacity = '1';
+     bigSpeech.style.transform = 'translateY(0)';
+     statusText.textContent = 'Том робот мэндчилж байна!';
+     setTimeout(() => {
+       bigRobot.classList.remove('wave');
+       statusText.textContent = 'Том робот мэндчилж дууслаа.';
+     }, 1000);
+     setTimeout(() => {
+       bigSpeech.style.opacity = '0';
+       bigSpeechTail.style.opacity = '0';
+       bigSpeech.style.transform = 'translateY(10px)';
+     }, 1600);
+   }
+   function blinkEyes() {
+     eyeLeft.style.height = '2px';
+     eyeRight.style.height = '2px';
+     eyeLeft.style.top = '18px';
+     eyeRight.style.top = '18px';
+     setTimeout(() => {
+       eyeLeft.style.height = '9px';
+       eyeRight.style.height = '9px';
+       eyeLeft.style.top = '15px';
+       eyeRight.style.top = '15px';
+     }, 160);
+   }
+   setInterval(blinkEyes, 2600);
+   function greetRobot() {
+     speechBubble.style.opacity = '1';
+     speechTail.style.opacity = '1';
+     speechBubble.style.transform = 'translateY(0)';
+     playerRightArm.style.transform = 'rotate(-85deg)';
+     blinkEyes();
+     statusText.textContent = 'Жижиг робот мэндчилж байна!';
+     setTimeout(() => { playerRightArm.style.transform = 'rotate(-20deg)'; }, 850);
+     setTimeout(() => {
+       speechBubble.style.opacity = '0';
+       speechTail.style.opacity = '0';
+       speechBubble.style.transform = 'translateY(10px)';
+     }, 1500);
+   }
+   function moveLeftArm() {
+     playerLeftArm.style.transform = 'rotate(80deg)';
+     statusText.textContent = 'Зүүн гар хөдөллөө.';
+     setTimeout(() => { playerLeftArm.style.transform = 'rotate(20deg)'; }, 700);
+   }
+   function moveRightArm() {
+     playerRightArm.style.transform = 'rotate(-85deg)';
+     statusText.textContent = 'Баруун гар хөдөллөө.';
+     setTimeout(() => { playerRightArm.style.transform = 'rotate(-20deg)'; }, 700);
+   }
+   function stretchArms() {
+     playerLeftArm.style.transform = 'rotate(100deg)';
+     playerRightArm.style.transform = 'rotate(-100deg)';
+     blinkEyes();
+     statusText.textContent = 'Робот суниаж байна!';
+     setTimeout(() => {
+       playerLeftArm.style.transform = 'rotate(20deg)';
+       playerRightArm.style.transform = 'rotate(-20deg)';
+     }, 850);
+   }
+   function rotateHead() {
+     playerHead.style.transform = 'rotate(25deg)';
+     statusText.textContent = 'Толгой эргэж байна.';
+     setTimeout(() => { playerHead.style.transform = 'rotate(-25deg)'; }, 300);
+     setTimeout(() => { playerHead.style.transform = 'rotate(0deg)'; }, 650);
+   }
+   function changeColor() {
+     const colors = [
+       'linear-gradient(135deg,#f2c24d,#c28b1d)',
+       'linear-gradient(135deg,#00f5ff,#2563eb)',
+       'linear-gradient(135deg,#ff3b3b,#7f1d1d)',
+       'linear-gradient(135deg,#7cff00,#166534)',
+       'linear-gradient(135deg,#a855f7,#581c87)'
+     ];
+     const random = colors[Math.floor(Math.random() * colors.length)];
+     playerBody.style.background = random;
+     statusText.textContent = 'Роботын өнгө солигдлоо!';
+   }
+   function walkRobots() {
+     playerLeftArm.style.animation = 'walkLeftArm .7s ease-in-out 4';
+     playerRightArm.style.animation = 'walkRightArm .7s ease-in-out 4';
+     playerLeftLeg.style.animation = 'walkLeftLeg .7s ease-in-out 4';
+     playerRightLeg.style.animation = 'walkRightLeg .7s ease-in-out 4';
+     statusText.textContent = 'Робот бүжиглэж байна!';
+     setTimeout(() => {
+       playerLeftArm.style.animation = '';
+       playerRightArm.style.animation = '';
+       playerLeftLeg.style.animation = '';
+       playerRightLeg.style.animation = '';
+     }, 3200);
+   }
+   function updateHud(mode = 'Demo', action = 'Idle') {
+     playerHpBar.style.width = '100%';
+     playerHpText.textContent = started ? 'ACTIVE' : 'READY';
+     scoreText.textContent = mode;
+     comboText.textContent = action;
+   }
+   function startFightMode() {
+     fightText.textContent = 'READY...';
+     setTimeout(() => { fightText.textContent = 'START!'; }, 700);
+     setTimeout(() => {
+       fightIntro.style.opacity = '0';
+       fightIntro.style.pointerEvents = 'none';
+       started = true;
+       statusText.textContent = 'Тоглоом эхэллээ! A/D эсвэл ←/→ = move';
+       updateHud('Demo', 'Start');
+     }, 1600);
+   }
+   function resetGame() {
+     playerX = 60;
+     playerRobot.style.left = playerX + 'px';
+     playerRobot.style.transform = 'translateX(0)';
+     started = false;
+     fightIntro.style.opacity = '1';
+     fightIntro.style.pointerEvents = 'auto';
+     fightText.textContent = 'READY...';
+     statusText.textContent = 'Дахин эхэллээ. Start дарна уу.';
+     updateHud('Demo', 'Idle');
+   }
+   document.addEventListener('keydown', (e) => {
+     if (!started) return;
+     const key = e.key.toLowerCase();
+     if (key === 'arrowright' || key === 'd') {
+       playerX = Math.min(320, playerX + 12);
+       playerRobot.style.left = playerX + 'px';
+       updateHud('Demo', 'Move');
+     }
+     if (key === 'arrowleft' || key === 'a') {
+       playerX = Math.max(0, playerX - 12);
+       playerRobot.style.left = playerX + 'px';
+       updateHud('Demo', 'Move');
+     }
+   });
+   updateHud('Demo', 'Idle');
+ </script>
+</body>
+</html>
+
+
+
+
